@@ -23,7 +23,7 @@ def create_table():
         if connection:
             connection.close()    
             print("sqlite o'chdi")
-create_table()
+# create_table()
             
 
 def Add_db(chat_id, user_id, fullname, soni):
@@ -68,7 +68,7 @@ def Read_db():
             # print("sqlite faoliyatini tugatdi")       
 
 
-def UpdateSoni(soni, chat_id, user_id):
+def Update_Soni(soni, chat_id, user_id):
     try:
         with sqlite3.connect("sqlite3.db") as con:
             cur = con.cursor()

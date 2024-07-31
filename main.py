@@ -6,7 +6,7 @@ from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.context import FSMContext
 from config import TOKEN
-from dt_base import Add_db, Read_db
+from dt_base import Add_db, Read_db, Update_Soni
 
 
 logging.basicConfig(level=logging.INFO)
@@ -26,28 +26,41 @@ async def group(message: Message):
 
 
 @dp.message(F.chat.type == "supergroup", F.new_chat_members)
-async def ner_member(message: Message):
+async def nev_member(message: Message):
     new_members = message.new_chat_members  # Yangi a'zolar ro'yxati
     inviter = message.from_user  # Yangi a'zolarni qo'shgan foydalanuvchi
     chat_id = message.chat.id
 
     for member in new_members:
         if member.id == inviter.id:
-            await message.answer(text=f"Assalomu alaykum {member.full_name}")
+            await message.answer(text=f"Assalomu alaykum {html.bold(member.full_name)}")
         else:
-            Add_db(chat_id=chat_id, user_id=inviter.id, fullname=inviter.full_name, soni=1)
+            for user in Read_db():
+                if (user[0] == chat_id) and (user[1] == inviter.id):
+                    soni = user[3] + 1
+                    Update_Soni(soni=soni, chat_id=chat_id, user_id=inviter.id)
+                    break
+            else: 
+                Add_db(chat_id=chat_id, user_id=inviter.id, fullname=inviter.full_name, soni=1)            
+    await message.delete()
 
-    natija = "Natijalar :"
+
+@dp.message(Command('natijalar'), F.chat.type == "supergroup")
+async def natijalar(message: Message):
+    chat_id = message.chat.id
+
+    wag = 1
+    natija = "<b>Natijalar :</b>"
     for user in Read_db():
         if user[0] == chat_id:  
-            natija += f"\n{user[2]} - {html.bold(user[3])} ta"
-    await message.answer(text=natija)            
-    await message.delete()
+            natija += f"\n{wag}. {html.bold(user[2])} - {html.bold(user[3])} ta"
+        wag += 1
+    await message.answer(text=natija)    
 
 
 @dp.message(F.chat.type == "supergroup", F.left_chat_member)
 async def ner_member(message: Message):
-    await message.answer(text=f"Xayr {message.left_chat_member.full_name}")
+    # await message.answer(text=f"Xayr {message.left_chat_member.full_name}")
     await message.delete()
 
 
