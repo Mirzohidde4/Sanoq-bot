@@ -95,12 +95,17 @@ async def nev_member(message: Message):
 async def natijalar(message: Message):
     chat_id = message.chat.id
 
+    chat_list = []
+    for user in Read_db():
+        if user[0] == chat_id:
+            chat_list.append(user)  
+
+    sorted_tuple_list = sorted(chat_list, key=lambda x: x[3], reverse=True)
     wag = 1
     natija = "<b>Natijalar :</b>"
-    for user in Read_db():
-        if user[0] == chat_id:  
-            natija += f"\n{wag}. {html.bold(user[2])} - {html.bold(user[3])} ta"
-        wag += 1
+    for tupl in sorted_tuple_list:
+        natija += f"\n{wag}. {html.bold(tupl[2])} - {html.bold(tupl[3])} ta"  
+        wag += 1      
     await message.answer(text=natija)    
 
 
