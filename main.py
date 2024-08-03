@@ -1,12 +1,13 @@
 import asyncio, logging
 from aiogram import Bot, Dispatcher, F, html
-from aiogram.types import Message, CallbackQuery, FSInputFile, ChatPermissions
+from aiogram.types import Message, CallbackQuery, FSInputFile, ChatPermissions, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import CommandStart, Command, and_f
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.context import FSMContext
 from config import TOKEN
 from dt_base import Add_db, Read_db, Update_Soni
+from inline import start, menu
 
 
 logging.basicConfig(level=logging.INFO)
@@ -15,14 +16,59 @@ dp = Dispatcher()
 
 
 @dp.message(CommandStart())
-async def start(message: Message):
-    user = message.from_user.full_name
-    await message.answer(text=f"Assalomu alaykum {html.bold(user)}")
+async def smd_start(message: Message):
+    await message.answer_photo(
+        photo='https://avatars.mds.yandex.net/i?id=f40b8e1a8e992e4f073a8cef5964ff7b9c4b359c-9065820-images-thumbs&n=13',
+        caption=html.bold("Assalomu alaykum xush kelibsiz."),
+        reply_markup=start.as_markup()
+    )
 
 
-@dp.message(F.text == 'salom', F.chat.type == "supergroup")
-async def group(message: Message):
-    await message.reply(text="Salom")
+@dp.callback_query(F.data.startswith('start_'))
+async def btn(call: CallbackQuery):
+    await call.message.delete()
+    action = call.data.split('_')
+    word = action[1]
+
+    if word == 'qollanma':
+         await call.message.answer(
+            text=f"""
+                <b>⚜️ Shartlar :
+1. Botni (@sanoq_uz_bot) guruhingizga qo'shing.
+    
+2. Botni guruhingizda administratorlar ro'yxatiga qo'shib qo'ying.</b>
+            """, reply_markup=menu.as_markup()
+        )
+
+    elif word == 'buyruqlar':
+        await call.message.answer(text=f'''
+            {html.bold('Guruhlarda botdan foydalanish uchun buyruqlar :')}
+1 . {html.bold('/natijalar')} - guruhga kim qancha odam qo'shganini aniqlash (bot ishga tushgan vaqtdan boshlab).
+2.  {html.bold('yozma')} - guruhda foydalanuvchiga yozishni taqiqlab qo'yish (reply qilib yozish kerak).
+3. {html.bold('yoz')} - yuqoridagi foydalanuvchuga yozishga ruxsat berish (reply qilib yozish kerak).
+4.  {html.bold('ban')} - guruhda foydalanuvchini chiqarib yuborish va qora ro'yhatga qo'shish (reply qilib yozish kerak).
+5. {html.bold('unban')} - yuqoridagi foydalanuvchini qora royhatdan chiqarish va guruhga qo'shilishga ruxsat berish (reply qilib yozish kerak).    
+    ''',
+    reply_markup=InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text='🔝 Asosiy menyu', callback_data='canal_main')]
+        ]
+    )
+    ) 
+        
+
+@dp.callback_query(F.data.startswith('canal'))
+async def back(call: CallbackQuery):
+    await call.message.delete()
+    action = call.data.split('_')
+    word = action[1]
+
+    if word == 'main':
+            await call.message.answer_photo(
+        photo='https://avatars.mds.yandex.net/i?id=f40b8e1a8e992e4f073a8cef5964ff7b9c4b359c-9065820-images-thumbs&n=13',
+        caption=html.bold("🏠 Asosiy menyuga qaytdingiz."),
+        reply_markup=start.as_markup()
+    )
 
 
 @dp.message(F.chat.type == "supergroup", F.new_chat_members)
@@ -96,7 +142,7 @@ async def yoz(message: Message):
 
 @dp.message(F.text)
 async def echo(message: Message):
-    await message.answer(text=f"{message.text}")
+    await message.answer(text="Botni qayta ishga tushirish uchun /start ni bosing.")
 
 
 async def main():
