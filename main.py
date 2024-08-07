@@ -42,12 +42,12 @@ async def btn(call: CallbackQuery):
 
     elif word == 'buyruqlar':
         await call.message.answer(text=f'''
-            {html.bold('Guruhlarda botdan foydalanish uchun buyruqlar :')}
+            {html.bold('Guruhlarda botdan foydalanish uchun buyruqlar\n(1-dan tashqari barcha buyruqlar reply qilib yozilsa ishlaydi) :')}
 1 . {html.bold('/natijalar')} - guruhga kim qancha odam qo'shganini aniqlash (bot ishga tushgan vaqtdan boshlab).
-2.  {html.bold('yozma')} - guruhda foydalanuvchiga yozishni taqiqlab qo'yish (reply qilib yozish kerak).
-3. {html.bold('yoz')} - yuqoridagi foydalanuvchuga yozishga ruxsat berish (reply qilib yozish kerak).
-4.  {html.bold('ban')} - guruhda foydalanuvchini chiqarib yuborish va qora ro'yhatga qo'shish (reply qilib yozish kerak).
-5. {html.bold('unban')} - yuqoridagi foydalanuvchini qora royhatdan chiqarish va guruhga qo'shilishga ruxsat berish (reply qilib yozish kerak).    
+2.  {html.bold('yozma')} - guruhda foydalanuvchiga yozishni taqiqlab qo'yish.
+3. {html.bold('yoz')} - yuqoridagi foydalanuvchuga yozishga ruxsat berish.
+4.  {html.bold('ban')} - guruhda foydalanuvchini chiqarib yuborish va qora ro'yhatga qo'shish.
+5. {html.bold('unban')} - yuqoridagi foydalanuvchini qora royhatdan chiqarish va guruhga qo'shilishga ruxsat berish.    
     ''',
     reply_markup=InlineKeyboardMarkup(
         inline_keyboard=[
@@ -80,18 +80,22 @@ async def nev_member(message: Message):
     for member in new_members:
         if member.id == inviter.id:
             await message.answer(text=f"Assalomu alaykum {html.bold(member.full_name)}")
+
+        elif member.is_bot:
+            continue
+
         else:
             for user in Read_db():
                 if (user[0] == chat_id) and (user[1] == inviter.id):
                     soni = user[3] + 1
                     Update_Soni(soni=soni, chat_id=chat_id, user_id=inviter.id)
                     break
-            else: 
-                Add_db(chat_id=chat_id, user_id=inviter.id, fullname=inviter.full_name, soni=1)            
+            # else: 
+            Add_db(chat_id=chat_id, user_id=inviter.id, fullname=inviter.full_name, soni=1)            
     await message.delete()
 
 
-@dp.message(Command('natijalar'), F.chat.type == "supergroup")
+@dp.message(Command("natijalar"), F.chat.type == "supergroup")
 async def natijalar(message: Message):
     chat_id = message.chat.id
 
@@ -106,7 +110,7 @@ async def natijalar(message: Message):
     for tupl in sorted_tuple_list:
         natija += f"\n{wag}. {html.bold(tupl[2])} - {html.bold(tupl[3])} ta"  
         wag += 1      
-    await message.answer(text=natija)    
+    await message.reply(text=natija)    
 
 
 @dp.message(F.chat.type == "supergroup", F.left_chat_member)
@@ -120,7 +124,7 @@ async def yozma(message: Message):
     user_id = message.reply_to_message.from_user.id
     permission = ChatPermissions(can_send_messages=False)
     await message.chat.restrict(user_id=user_id, permissions=permission)
-    await message.answer(text=f"Siz endi yoza olmaysiz\n{message.reply_to_message.from_user.full_name}")
+    await message.answer(text=f"{message.reply_to_message.from_user.full_name}\nSiz endi yoza olmaysiz.")
 
 
 @dp.message(F.chat.type == "supergroup", and_f(F.text == "yoz", F.reply_to_message))
@@ -128,26 +132,26 @@ async def yoz(message: Message):
     user_id = message.reply_to_message.from_user.id
     permission = ChatPermissions(can_send_messages=True)
     await message.chat.restrict(user_id=user_id, permissions=permission)
-    await message.answer(text=f"Siz endi yoza olasiz\n{message.reply_to_message.from_user.full_name}")
+    await message.answer(text=f"{message.reply_to_message.from_user.full_name}\nSiz endi yoza olasiz.")
 
 
 @dp.message(F.chat.type == "supergroup", and_f(F.text == "ban", F.reply_to_message))
 async def yoz(message: Message):
     user_id = message.reply_to_message.from_user.id
     await message.chat.ban_sender_chat(user_id)
-    await message.answer(text=f"Siz endi guruhga qo'shila olmaysiz\n{message.reply_to_message.from_user.full_name}")
+    await message.answer(text=f"{message.reply_to_message.from_user.full_name}\nSiz endi guruhga qo'shila olmaysiz.")
 
 
 @dp.message(F.chat.type == "supergroup", and_f(F.text == "unban", F.reply_to_message))
 async def yoz(message: Message):
     user_id = message.reply_to_message.from_user.id
     await message.chat.unban_sender_chat(user_id)
-    await message.answer(text=f"Siz endi guruhga qo'shila olasiz\n{message.reply_to_message.from_user.full_name}")
+    await message.answer(text=f"{message.reply_to_message.from_user.full_name}\nSiz endi guruhga qo'shila olasiz.")
 
 
-@dp.message(F.text)
-async def echo(message: Message):
-    await message.answer(text="Botni qayta ishga tushirish uchun /start ni bosing.")
+# @dp.message(F.text)
+# async def echo(message: Message):
+#     await message.answer(text="Botni qayta ishga tushirish uchun /start ni bosing.")
 
 
 async def main():
